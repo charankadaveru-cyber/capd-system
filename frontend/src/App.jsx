@@ -6,7 +6,6 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import PatientDashboard from "./pages/PatientDashboard";
 import VendorDashboard from "./pages/VendorDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
     return (
