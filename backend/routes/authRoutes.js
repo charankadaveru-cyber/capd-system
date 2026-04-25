@@ -12,7 +12,7 @@ router.post(
         body("email").isEmail().withMessage("Valid email required"),
         body("phone").isLength({ min: 10 }).withMessage("Phone required"),
         body("password").isLength({ min: 6 }).withMessage("Password min 6 chars"),
-        body("role").isIn(["patient", "vendor"]).withMessage("Invalid role"),
+        body("role").isIn(["patient", "vendor", "admin"]).withMessage("Invalid role"),
     ],
     registerUser
 );

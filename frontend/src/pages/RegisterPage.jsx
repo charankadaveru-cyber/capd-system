@@ -45,6 +45,7 @@ function RegisterPage() {
                 <select name="role" value={formData.role} onChange={handleChange}>
                     <option value="patient">Patient</option>
                     <option value="vendor">Vendor</option>
+                    <option value="admin">Admin</option>
                 </select>
                 <input
                     type={showPassword ? "text" : "password"}

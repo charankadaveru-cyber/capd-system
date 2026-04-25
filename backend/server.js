@@ -5,21 +5,19 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 
-// ROUTES
 import authRoutes from "./routes/authRoutes.js";
 import patientRoutes from "./routes/patientRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-// SOCKET.IO
+// SOCKET
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-    },
+    cors: { origin: "*" },
 });
 
 app.set("io", io);
@@ -34,19 +32,20 @@ app.use(
     })
 );
 
-// TEST ROUTE (VERY IMPORTANT)
+// TEST ROUTES
 app.get("/", (req, res) => {
-    res.send("Smart CAPD Backend Running");
+    res.send("Backend Running");
 });
 
 app.get("/api", (req, res) => {
     res.json({ message: "API is running" });
 });
 
-// ROUTES
+// MAIN ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/vendor", vendorRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ERROR HANDLER
 app.use((req, res) => {
@@ -55,13 +54,13 @@ app.use((req, res) => {
     });
 });
 
-// DB CONNECTION
+// DB
 mongoose
     .connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log("DB Error:", err.message));
 
-// START SERVER
+// START
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
