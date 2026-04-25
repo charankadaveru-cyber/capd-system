@@ -22,8 +22,7 @@ function LoginPage() {
             const { data } = await API.post("/auth/login", formData);
             setUserInfo(data);
             if (data.role === "patient") navigate("/patient");
-            else if (data.role === "vendor") navigate("/vendor");
-            else if (data.role === "admin") navigate("/admin");
+            else navigate("/vendor");
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
         }
