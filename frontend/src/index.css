@@ -407,4 +407,35 @@ iframe {
         flex-direction: column;
     }
 
+    .auth-card button {
+        margin-top: 8px;
+    }
+
+    .auth-card input {
+        margin-top: 8px;
+    }
+
+    .success-text {
+        color: green;
+        font-weight: 600;
+    }
+
+    .error-text {
+        color: red;
+        font-weight: 600;
+    }
+
+    .btn-secondary {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+        background: #4f46e5;
+    }
+
 }
