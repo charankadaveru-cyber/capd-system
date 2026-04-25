@@ -1,50 +1,87 @@
 import { validationResult } from "express-validator";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
+import sendEmail from "../utils/sendEmail.js";
 
-export const registerUser = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+// temporary OTP storage
+const otpStore = new Map();
 
-    const { fullName, email, phone, password, role } = req.body;
+// SEND OTP
+export const sendOtp = async (req, res) => {
+    const { email } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "Email already registered" });
     }
 
-    const user = await User.create({ fullName, email, phone, password, role });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    otpStore.set(email, {
+        otp,
+        expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+
+    await sendEmail(
+        email,
+        "CAPD OTP Verification",
+        `Your OTP is ${otp}`
+    );
+
+    res.json({ message: "OTP sent successfully" });
+};
+
+// REGISTER WITH OTP
+export const registerUser = async (req, res) => {
+    const { fullName, email, phone, password, role, otp } = req.body;
+
+    const savedOtp = otpStore.get(email);
+
+    if (!savedOtp) {
+        return res.status(400).json({ message: "Request OTP first" });
+    }
+
+    if (savedOtp.expiresAt < Date.now()) {
+        return res.status(400).json({ message: "OTP expired" });
+    }
+
+    if (savedOtp.otp !== otp) {
+        return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    const user = await User.create({
+        fullName,
+        email,
+        phone,
+        password,
+        role,
+    });
+
+    otpStore.delete(email);
 
     res.status(201).json({
         _id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token: generateToken(user._id, user.role),
+        fullName,
+        email,
+        role,
+        token: generateToken(user._id, role),
     });
 };
 
+// LOGIN
 export const loginUser = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
 
     if (!user || !(await user.matchPassword(password))) {
-        return res.status(401).json({ message: "Invalid email or password" });
+        return res.status(401).json({ message: "Invalid credentials" });
     }
 
     res.json({
         _id: user._id,
         fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
+        email,
         role: user.role,
         token: generateToken(user._id, user.role),
     });
