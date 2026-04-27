@@ -10,13 +10,11 @@ function RegisterPage() {
         phone: "",
         password: "",
         role: "patient",
-        otp: "",
     });
 
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const [otpSent, setOtpSent] = useState(false);
 
     const { setUserInfo } = useAuth();
     const navigate = useNavigate();
@@ -28,36 +26,10 @@ function RegisterPage() {
         });
     };
 
-    const handleSendOtp = async () => {
-        setError("");
-        setMessage("");
-
-        if (!formData.email) {
-            setError("Please enter email first");
-            return;
-        }
-
-        try {
-            await API.post("/auth/send-otp", {
-                email: formData.email,
-            });
-
-            setOtpSent(true);
-            setMessage("OTP sent to your email");
-        } catch (err) {
-            setError(err.response?.data?.message || "Failed to send OTP");
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setMessage("");
-
-        if (!formData.otp) {
-            setError("Please enter OTP");
-            return;
-        }
 
         try {
             const { data } = await API.post("/auth/register", formData);
@@ -104,25 +76,6 @@ function RegisterPage() {
                     onChange={handleChange}
                     required
                 />
-
-                <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    className="btn-secondary full"
-                >
-                    Send OTP
-                </button>
-
-                {otpSent && (
-                    <input
-                        type="text"
-                        name="otp"
-                        placeholder="Enter OTP"
-                        value={formData.otp}
-                        onChange={handleChange}
-                        required
-                    />
-                )}
 
                 <input
                     type="text"
