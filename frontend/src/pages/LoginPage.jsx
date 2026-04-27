@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import API from "../api";
+import { useAuth } from "../context/AuthContext";
 
 function LoginPage() {
     const [formData, setFormData] = useState({
@@ -10,50 +11,94 @@ function LoginPage() {
         password: "",
     });
 
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+
+    const { setUserInfo } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
 
         try {
-            const userCred = await signInWithEmailAndPassword(
+            const firebaseResult = await signInWithEmailAndPassword(
                 auth,
                 formData.email,
                 formData.password
             );
 
-            // check verification
-            if (!userCred.user.emailVerified) {
-                setError("Please verify your email first");
+            await firebaseResult.user.reload();
+
+            if (!firebaseResult.user.emailVerified) {
+                await signOut(auth);
+                setError("Please verify your email before login.");
                 return;
             }
 
             const { data } = await API.post("/auth/login", formData);
 
-            if (data.role === "patient") navigate("/patient");
-            else navigate("/vendor");
+            setUserInfo(data);
 
+            if (data.role === "patient") {
+                navigate("/patient");
+            } else if (data.role === "vendor") {
+                navigate("/vendor");
+            }
         } catch (err) {
-            setError("Invalid login");
+            setError("Invalid login or email not verified");
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h2>Login</h2>
+        <div className="auth-page">
+            <form className="auth-card" onSubmit={handleSubmit}>
+                <h2>Login</h2>
 
-            {error && <p>{error}</p>}
+                {error && <p className="error-text">{error}</p>}
 
-            <input name="email" onChange={handleChange} />
-            <input name="password" type="password" onChange={handleChange} />
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                />
 
-            <button type="submit">Login</button>
-        </form>
+                <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                />
+
+                <label className="checkbox-line">
+                    <input
+                        type="checkbox"
+                        onChange={() => setShowPassword(!showPassword)}
+                    />
+                    Show Password
+                </label>
+
+                <button type="submit" className="btn-primary full">
+                    Login
+                </button>
+
+                <p>
+                    Don&apos;t have an account? <Link to="/register">Register</Link>
+                </p>
+            </form>
+        </div>
     );
 }
 
