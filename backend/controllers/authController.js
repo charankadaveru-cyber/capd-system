@@ -8,27 +8,43 @@ const otpStore = new Map();
 
 // SEND OTP
 export const sendOtp = async (req, res) => {
-    const { email } = req.body;
+    try {
+        const { email } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        return res.status(400).json({ message: "Email already registered" });
+        console.log("SEND OTP REQUEST:", email);
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email already registered" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        otpStore.set(email, {
+            otp,
+            expiresAt: Date.now() + 10 * 60 * 1000,
+        });
+
+        console.log("Generated OTP:", otp);
+
+        await sendEmail(
+            email,
+            "CAPD OTP Verification",
+            `Your OTP is ${otp}`
+        );
+
+        console.log("OTP email sent successfully");
+
+        res.json({ message: "OTP sent successfully" });
+
+    } catch (error) {
+        console.log("SEND OTP ERROR:", error.message);
+
+        res.status(500).json({
+            message: "Failed to send OTP",
+            error: error.message,
+        });
     }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    otpStore.set(email, {
-        otp,
-        expiresAt: Date.now() + 10 * 60 * 1000,
-    });
-
-    await sendEmail(
-        email,
-        "CAPD OTP Verification",
-        `Your OTP is ${otp}`
-    );
-
-    res.json({ message: "OTP sent successfully" });
 };
 
 // REGISTER WITH OTP
