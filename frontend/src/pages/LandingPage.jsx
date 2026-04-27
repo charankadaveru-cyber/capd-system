@@ -5,7 +5,7 @@ function LandingPage() {
         <div className="hero-page">
             <div className="hero-card">
                 <div className="hero-left">
-                    <h1>Smart CAPD Kit Delivery System</h1>
+                    <h1>CAPD Kit Delivery System</h1>
                     <p>
                         Securely manage CAPD kit requests, delivery workflows, and real-time tracking
                         for patients and vendors in one centralized platform.
