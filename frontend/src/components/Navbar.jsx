@@ -12,7 +12,7 @@ function Navbar() {
 
     return (
         <nav className="navbar">
-            <Link to="/" className="logo">Smart CAPD</Link>
+            <Link to="/" className="logo">CAPD System</Link>
             <div className="nav-links">
                 {!userInfo ? (
                     <>
