@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import API from "../api";
 import StatusBadge from "../components/StatusBadge";
-
-const socket = io("http://localhost:5000");
+const socket = io("https://capd-system-1.onrender.com", {
+  transports: ["websocket"],
+});
 
 function PatientDashboard() {
   const [orders, setOrders] = useState([]);
@@ -26,13 +27,30 @@ function PatientDashboard() {
   }, []);
 
   useEffect(() => {
-    socket.on("orderUpdated", (updatedOrder) => {
-      setOrders((prev) =>
-        prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o))
-      );
+    socket.on("connect", () => {
+      console.log("Patient socket connected:", socket.id);
     });
 
-    return () => socket.off("orderUpdated");
+    socket.on("orderUpdated", (updatedOrder) => {
+      console.log("Order updated:", updatedOrder);
+
+      setOrders((prevOrders) => {
+        const exists = prevOrders.some((order) => order._id === updatedOrder._id);
+
+        if (exists) {
+          return prevOrders.map((order) =>
+            order._id === updatedOrder._id ? updatedOrder : order
+          );
+        }
+
+        return [updatedOrder, ...prevOrders];
+      });
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("orderUpdated");
+    };
   }, []);
 
   const handleSubmit = async (e) => {
